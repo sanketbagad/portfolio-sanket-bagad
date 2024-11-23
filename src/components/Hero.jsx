@@ -19,6 +19,8 @@ const Hero = () => {
   const nextVdRef = useRef(null);
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
+  console.log("isIOS", isIOS)
+
   const handleVideoLoad = () => {
     setLoadedVideos((prev) => prev + 1);
   };
