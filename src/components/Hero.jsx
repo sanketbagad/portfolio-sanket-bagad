@@ -120,6 +120,7 @@ const Hero = () => {
                 className="origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100"
               >
                 <video
+                  playsInline
                   ref={nextVdRef}
                   src={getVideoSrc((currentIndex % totalVideos) + 1)}
                   loop
@@ -133,10 +134,12 @@ const Hero = () => {
           </div>
 
           <video
+            playsInline
             ref={nextVdRef}
             src={getVideoSrc(currentIndex)}
             loop
             muted
+            preload="auto"
             id="next-video"
             className="absolute-center invisible absolute z-20 size-64 object-cover object-center"
             onLoadedData={handleVideoLoad}
@@ -147,6 +150,7 @@ const Hero = () => {
             )}
             autoPlay
             loop
+            playsInline
             muted
             className="absolute left-0 top-0 size-full object-cover object-center"
             onLoadedData={handleVideoLoad}
