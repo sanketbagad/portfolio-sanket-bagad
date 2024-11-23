@@ -12,40 +12,41 @@ gsap.registerPlugin(ScrollTrigger);
 const Hero = () => {
   const [currentIndex, setCurrentIndex] = useState(1);
   const [hasClicked, setHasClicked] = useState(false);
-
   const [loading, setLoading] = useState(true);
   const [loadedVideos, setLoadedVideos] = useState(0);
 
   const totalVideos = 4;
   const nextVdRef = useRef(null);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   const handleVideoLoad = () => {
     setLoadedVideos((prev) => prev + 1);
   };
 
   const downloadResume = () => {
-    // Path to the resume file in the public folder
     const resumeUrl = `/resume.pdf`;
-    
-    // Create a link element programmatically
     const link = document.createElement('a');
     link.href = resumeUrl;
-    link.download = 'resume.pdf'; // Suggested file name for download
+    link.download = 'resume.pdf';
     document.body.appendChild(link);
-    link.click(); // Trigger the download
-    document.body.removeChild(link); // Clean up the link element
+    link.click();
+    document.body.removeChild(link);
   };
 
   useEffect(() => {
-    if (loadedVideos === totalVideos - 1) {
+    if (loadedVideos >= totalVideos) {
       setLoading(false);
     }
   }, [loadedVideos]);
 
   const handleMiniVdClick = () => {
     setHasClicked(true);
-
     setCurrentIndex((prevIndex) => (prevIndex % totalVideos) + 1);
+    
+    // Play video explicitly on iOS
+    if (isIOS && nextVdRef.current) {
+      nextVdRef.current.play();
+    }
   };
 
   useGSAP(
@@ -59,20 +60,13 @@ const Hero = () => {
           height: "100%",
           duration: 1,
           ease: "power1.inOut",
-          onStart: () => nextVdRef.current.play(),
-        });
-        gsap.from("#current-video", {
-          transformOrigin: "center center",
-          scale: 0,
-          duration: 1.5,
-          ease: "power1.inOut",
+          onStart: () => {
+            if (!isIOS) nextVdRef.current.play();
+          },
         });
       }
     },
-    {
-      dependencies: [currentIndex],
-      revertOnUpdate: true,
-    }
+    { dependencies: [currentIndex], revertOnUpdate: true }
   );
 
   useGSAP(() => {
@@ -99,7 +93,6 @@ const Hero = () => {
     <div className="relative h-dvh w-screen overflow-x-hidden">
       {loading && (
         <div className="flex-center absolute z-[100] h-dvh w-screen overflow-hidden bg-violet-50">
-          {/* https://uiverse.io/G4b413l/tidy-walrus-92 */}
           <div className="three-body">
             <div className="three-body__dot"></div>
             <div className="three-body__dot"></div>
@@ -108,17 +101,11 @@ const Hero = () => {
         </div>
       )}
 
-      <div
-        id="video-frame"
-        className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-blue-75"
-      >
+      <div id="video-frame" className="relative z-10 h-dvh w-screen overflow-hidden rounded-lg bg-blue-75">
         <div>
           <div className="mask-clip-path absolute-center absolute z-50 size-64 cursor-pointer overflow-hidden rounded-lg">
             <VideoPreview>
-              <div
-                onClick={handleMiniVdClick}
-                className="origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100"
-              >
+              <div onClick={handleMiniVdClick} className="origin-center scale-50 opacity-0 transition-all duration-500 ease-in hover:scale-100 hover:opacity-100">
                 <video
                   playsInline
                   ref={nextVdRef}
@@ -127,7 +114,7 @@ const Hero = () => {
                   muted
                   id="current-video"
                   className="size-64 origin-center scale-150 object-cover object-center"
-                  onLoadedData={handleVideoLoad}
+                  onCanPlayThrough={handleVideoLoad}
                 />
               </div>
             </VideoPreview>
@@ -141,18 +128,16 @@ const Hero = () => {
             muted
             id="next-video"
             className="absolute-center invisible absolute z-20 size-64 object-cover object-center"
-            onLoadedData={handleVideoLoad}
+            onCanPlayThrough={handleVideoLoad}
           />
           <video
-            src={getVideoSrc(
-              currentIndex === totalVideos - 1 ? 1 : currentIndex
-            )}
+            src={getVideoSrc(currentIndex === totalVideos - 1 ? 1 : currentIndex)}
             autoPlay
             loop
             playsInline
             muted
             className="absolute left-0 top-0 size-full object-cover object-center"
-            onLoadedData={handleVideoLoad}
+            onCanPlayThrough={handleVideoLoad}
           />
         </div>
 
