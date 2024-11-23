@@ -19,8 +19,6 @@ const Hero = () => {
   const nextVdRef = useRef(null);
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
 
-  console.log("isIOS", isIOS)
-
   const handleVideoLoad = () => {
     setLoadedVideos((prev) => prev + 1);
   };
@@ -44,16 +42,16 @@ const Hero = () => {
   const handleMiniVdClick = () => {
     setHasClicked(true);
     setCurrentIndex((prevIndex) => (prevIndex % totalVideos) + 1);
-    
     // Play video explicitly on iOS
     if (isIOS && nextVdRef.current) {
       nextVdRef.current.play();
     }
   };
 
+  // Skip GSAP animations if on iOS
   useGSAP(
     () => {
-      if (hasClicked) {
+      if (!isIOS) {
         gsap.set("#next-video", { visibility: "visible" });
         gsap.to("#next-video", {
           transformOrigin: "center center",
@@ -62,9 +60,13 @@ const Hero = () => {
           height: "100%",
           duration: 1,
           ease: "power1.inOut",
-          onStart: () => {
-            if (!isIOS) nextVdRef.current.play();
-          },
+          onStart: () => nextVdRef.current.play(),
+        });
+        gsap.from("#current-video", {
+          transformOrigin: "center center",
+          scale: 0,
+          duration: 1.5,
+          ease: "power1.inOut",
         });
       }
     },
@@ -72,21 +74,23 @@ const Hero = () => {
   );
 
   useGSAP(() => {
-    gsap.set("#video-frame", {
-      clipPath: "polygon(14% 0, 72% 0, 88% 90%, 0 95%)",
-      borderRadius: "0% 0% 40% 10%",
-    });
-    gsap.from("#video-frame", {
-      clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
-      borderRadius: "0% 0% 0% 0%",
-      ease: "power1.inOut",
-      scrollTrigger: {
-        trigger: "#video-frame",
-        start: "center center",
-        end: "bottom center",
-        scrub: true,
-      },
-    });
+    if (!isIOS) {
+      gsap.set("#video-frame", {
+        clipPath: "polygon(14% 0, 72% 0, 88% 90%, 0 95%)",
+        borderRadius: "0% 0% 40% 10%",
+      });
+      gsap.from("#video-frame", {
+        clipPath: "polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)",
+        borderRadius: "0% 0% 0% 0%",
+        ease: "power1.inOut",
+        scrollTrigger: {
+          trigger: "#video-frame",
+          start: "center center",
+          end: "bottom center",
+          scrub: true,
+        },
+      });
+    }
   });
 
   const getVideoSrc = (index) => `videos/hero-${index}.mp4`;
